@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ee3b2e">
+<title>Balboa Bingo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23fff' stroke='%2314213d' stroke-width='8'/%3E%3Cpath d='M5 50a45 45 0 0 1 90 0z' fill='%23ee3b2e' stroke='%2314213d' stroke-width='8'/%3E%3Ccircle cx='50' cy='50' r='13' fill='%23fff' stroke='%2314213d' stroke-width='8'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14213d; --blue:#2a75bb; --navy:#1d3f7a; --yellow:#ffcb05; --red:#ee3b2e;
+    --orange:#ff8a1f; --purple:#8a4fd8; --green:#3fb950; --paper:#fffaf0; --muted:#4b5563;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:"Nunito","Helvetica Neue",Arial,sans-serif;
+       font-weight:700; font-size:16px; line-height:1.3; padding-bottom:env(safe-area-inset-bottom)}
+  .fun{font-family:"Luckiest Guy","Arial Black",sans-serif; font-weight:400; letter-spacing:.02em}
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px 40px}
+  button{font:inherit; color:inherit; cursor:pointer}
+
+  header{background:linear-gradient(135deg,var(--red),var(--orange)); border-bottom:4px solid var(--ink); color:#fff}
+  header .wrap{padding-top:18px; padding-bottom:16px; display:flex; align-items:center; gap:14px}
+  header h1{margin:0; font-size:40px; line-height:.95; color:var(--yellow);
+            -webkit-text-stroke:.09em var(--navy); paint-order:stroke fill; text-shadow:0 .06em 0 var(--navy)}
+  header p{margin:6px 0 0; font-weight:900; font-size:14px; letter-spacing:.03em}
+  header .ball{--s:64px; margin-left:auto}
+
+  /* poke ball mark */
+  .ball{width:var(--s); height:var(--s); border-radius:50%; border:calc(var(--s)*.08) solid var(--ink);
+        background:linear-gradient(var(--red) 0 45%, var(--ink) 45% 55%, #fff 55%); position:relative; flex:none}
+  .ball::after{content:""; position:absolute; left:50%; top:50%; width:34%; height:34%; transform:translate(-50%,-50%);
+        background:#fff; border:calc(var(--s)*.07) solid var(--ink); border-radius:50%}
+  .ball.off{background:linear-gradient(#e5e7eb 0 45%, #9ca3af 45% 55%, #fff 55%); border-color:#9ca3af}
+  .ball.off::after{border-color:#9ca3af}
+
+  .names{display:grid; gap:8px; margin:16px 0 14px}
+  .names label{display:block; border:3px solid var(--ink); border-radius:12px; padding:6px 12px 4px; background:#fff}
+  .names .k{font-size:12px; font-weight:900; letter-spacing:.1em; text-transform:uppercase}
+  .names .k span{color:var(--muted); font-weight:700; letter-spacing:.02em; text-transform:none}
+  .names label:nth-child(1) .k{color:var(--purple)} .names label:nth-child(2) .k{color:var(--red)} .names label:nth-child(3) .k{color:var(--blue)}
+  .names input{width:100%; border:0; outline:0; font:inherit; font-size:18px; padding:2px 0 4px; background:transparent; color:var(--ink)}
+
+  .status{border:3px solid var(--ink); border-radius:12px; padding:10px 14px; margin-bottom:12px; background:#fff; text-align:center}
+  .status .big{font-size:28px; line-height:1}
+  .status.bingo{background:var(--blue); color:#fff}
+  .status.blackout{background:var(--purple); color:#fff}
+  .status .big{display:block}
+
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .sq{position:relative; border:3px solid var(--ink); border-radius:14px; box-shadow:0 4px 0 var(--ink); background:var(--bg);
+      padding:30px 6px 8px; min-height:150px; display:flex; flex-direction:column; align-items:center; text-align:center;
+      -webkit-tap-highlight-color:transparent}
+  .sq:active{transform:translateY(2px); box-shadow:0 2px 0 var(--ink)}
+  .sq .n{position:absolute; left:6px; top:6px; background:var(--ink); color:#fff; width:22px; height:22px; border-radius:50%;
+         font-size:13px; font-weight:900; display:grid; place-items:center}
+  .sq .ball{--s:24px; position:absolute; right:6px; top:5px}
+  .sq .nm{font-weight:900; font-size:14px; line-height:1.08}
+  .sq .got{margin-top:auto; padding-top:6px; width:100%; font-size:13px; line-height:1.1; word-break:break-word}
+  .sq .got.empty{color:#6b7280; font-weight:800; font-size:11px; letter-spacing:.06em}
+  .sq.done{outline:4px solid var(--green); outline-offset:-1px}
+  .sq.free{background:var(--red); color:#fff}
+  .sq.free .nm{font-family:"Luckiest Guy","Arial Black",sans-serif; font-weight:400; font-size:24px}
+  .sq.free .got.empty{color:#ffe1dc}
+  .sq.line{box-shadow:0 4px 0 var(--ink), 0 0 0 4px var(--yellow)}
+
+  h2{font-size:24px; margin:28px 0 8px}
+  .more{display:grid; gap:6px; margin:0; padding:0; list-style:none}
+  .more li{display:flex; align-items:center; gap:10px; background:#fff; border:2px solid var(--ink); border-radius:10px; padding:8px 10px}
+  .more li .t{flex:1; word-break:break-word}
+  .more li button{border:0; background:none; font-size:14px; color:var(--red); font-weight:900; padding:4px 6px}
+  .addrow{display:flex; gap:8px; margin-top:8px}
+  .addrow input{flex:1; min-width:0; font:inherit; font-size:18px; padding:10px 12px; border:3px solid var(--ink); border-radius:12px; background:#fff; color:var(--ink)}
+  .btn{border:3px solid var(--ink); border-radius:12px; padding:10px 16px; font-weight:900; background:var(--yellow); box-shadow:0 3px 0 var(--ink)}
+  .btn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--ink)}
+  .btn.blue{background:var(--blue); color:#fff} .btn.red{background:var(--red); color:#fff} .btn.plain{background:#fff}
+  .empty-note{color:var(--muted); font-size:14px; margin:4px 0 0}
+
+  .saves{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .saves .btn{padding:14px 10px; font-size:17px}
+  .hint{font-size:13px; color:var(--muted); margin:8px 0 0}
+  .toast{min-height:20px; font-size:14px; margin-top:8px; color:var(--blue)}
+
+  .rules{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .rules div{border-radius:12px; padding:8px 11px; color:#fff; font-weight:800; font-size:14px; line-height:1.15}
+  .rules .h{font-family:"Luckiest Guy","Arial Black",sans-serif; font-weight:400; font-size:20px; display:block; line-height:1.05}
+  .box{margin-top:8px; border-radius:12px; padding:10px 14px; border:3px solid var(--ink)}
+  .box .h{font-size:20px; line-height:1}
+  .box p{margin:4px 0 0; font-size:15px}
+  .quiet{background:var(--yellow)} .quiet .h{color:var(--red)}
+  .lost{background:var(--ink); color:#fff} .lost .h{color:var(--yellow)}
+
+  .reset{margin-top:28px; text-align:center}
+  .reset .btn{font-size:14px; padding:8px 14px}
+  footer{margin-top:22px; font-size:12px; color:var(--muted); text-align:center}
+
+  /* tap-a-square sheet */
+  .sheet{position:fixed; inset:0; background:rgba(20,33,61,.55); display:none; align-items:flex-end; justify-content:center; z-index:10}
+  .sheet.open{display:flex}
+  .sheet .card{background:#fff; width:100%; max-width:560px; border-radius:20px 20px 0 0; border:3px solid var(--ink); border-bottom:0;
+               padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .sheet .top{display:flex; gap:10px; align-items:flex-start}
+  .sheet h3{margin:0; font-size:22px; line-height:1.1; flex:1}
+  .sheet .where{margin:4px 0 12px; color:var(--muted); font-size:15px}
+  .sheet .x{border:0; background:none; font-size:28px; line-height:1; padding:0 4px; font-weight:900}
+  .sheet label.q{display:block; font-weight:900; font-size:14px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px}
+  .sheet input[type=text]{width:100%; font:inherit; font-size:20px; padding:10px 12px; border:3px solid var(--ink); border-radius:12px; color:var(--ink)}
+  .sheet .stop{display:flex; gap:10px; align-items:center; margin:12px 0 4px; font-size:15px}
+  .sheet .stop input{width:24px; height:24px; flex:none; accent-color:var(--red)}
+  .sheet .acts{display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-top:14px}
+  .sheet .acts .btn{padding:14px 10px; font-size:18px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1 class="fun">Balboa Bingo</h1>
+      <p>TRACE Catch-a-thon. Any order. Tap a box when you catch one.</p>
+    </div>
+    <div class="ball" aria-hidden="true"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="names">
+    <label><div class="k">Team name</div><input id="team" type="text" autocomplete="off" enterkeyhint="done"></label>
+    <label><div class="k">Trainer <span>holds the phone</span></div><input id="trainer" type="text" autocomplete="off" enterkeyhint="done"></label>
+    <label><div class="k">Navigator <span>leads the way</span></div><input id="navigator" type="text" autocomplete="off" enterkeyhint="done"></label>
+  </div>
+
+  <div id="status" class="status" aria-live="polite"></div>
+  <div id="grid" class="grid"></div>
+
+  <h2 class="fun">More catches</h2>
+  <p class="empty-note" id="moreEmpty">Caught something extra? Add it here.</p>
+  <ul id="more" class="more"></ul>
+  <form class="addrow" id="addForm">
+    <input id="addInput" type="text" placeholder="What did you catch?" autocomplete="off" enterkeyhint="done" maxlength="60">
+    <button class="btn blue" type="submit">Add</button>
+  </form>
+
+  <h2 class="fun">Save your card</h2>
+  <div class="saves">
+    <button class="btn" id="savePic" type="button">Save picture</button>
+    <button class="btn red" id="savePdf" type="button">Save PDF</button>
+  </div>
+  <p class="hint">Your card saves on this phone only. Save a picture or PDF before you leave so you can keep it.</p>
+  <div class="toast" id="toast" aria-live="polite"></div>
+
+  <h2 class="fun">Rules</h2>
+  <div class="rules">
+    <div style="background:var(--blue)"><span class="h">Bingo!</span>3 in a row, any way</div>
+    <div style="background:var(--purple)"><span class="h">Blackout!</span>All 9 boxes</div>
+    <div style="background:var(--orange)"><span class="h">Switch jobs</span>after 4 stops</div>
+    <div style="background:var(--ink)"><span class="h" style="color:var(--yellow)">12:45</span>Go to Spreckels (stop 7)</div>
+  </div>
+  <div class="box quiet"><div class="h fun">Nothing to catch?</div><p>Wait 5 minutes. Still nothing? Spin the PokéStop instead and check the box.</p></div>
+  <div class="box lost"><div class="h fun">Lost your group?</div><p>Stop. Stay where you are, or go to the Bea Evenson Fountain (in front of the Fleet Science Center). Then contact your staff the way you practiced.</p></div>
+
+  <div class="reset"><button class="btn plain" id="reset" type="button">Start a new card</button></div>
+  <footer>Pokémon GO is a trademark of its owners. This page is not connected to them.</footer>
+</main>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <form class="card" id="sheetForm">
+    <div class="top"><h3 id="sheetTitle"></h3><button class="x" type="button" id="sheetClose" aria-label="Close">&times;</button></div>
+    <p class="where" id="sheetWhere"></p>
+    <label class="q" for="sheetInput">We caught</label>
+    <input id="sheetInput" type="text" placeholder="Type the Pokémon" autocomplete="off" enterkeyhint="done" maxlength="40">
+    <label class="stop"><input type="checkbox" id="sheetStop"> Nothing to catch. We spun the PokéStop instead.</label>
+    <div class="acts">
+      <button class="btn plain" type="button" id="sheetClear">Clear</button>
+      <button class="btn blue" type="submit">Check it!</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const SQUARES = [
+  {n:2, name:"Botanical Building + Lily Pond", where:"The big wooden greenhouse and the long pond", bg:"#d4f5d0"},
+  {n:7, name:"Spreckels Organ Pavilion", where:"The giant outdoor stage", bg:"#ffcb05"},
+  {n:4, name:"Museum of Us tower", where:"The tall tower with the blue-tiled dome", bg:"#e5d6ff"},
+  {n:8, name:"Zoro Garden", where:"The sunken stone garden next to the Fleet Science Center", bg:"#e6f7d6"},
+  {free:true, name:"FREE", where:"Catch any Pokémon together with your buddy", bg:"#ee3b2e"},
+  {n:5, name:"Alcazar Garden", where:"The garden with tiled fountains", bg:"#ffd6e8"},
+  {n:3, name:"Plaza de Panama", where:"The big plaza with the round fountain", bg:"#ffe9a8"},
+  {n:1, name:"Bea Evenson Fountain", where:"The fountain in front of the Fleet Science Center", bg:"#cfe8ff"},
+  {n:6, name:"El Cid statue", where:"The knight on a horse", bg:"#ffe1c2"},
+];
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const KEY = "trace-catchathon-2026";
+
+function blank(){ return {team:"", trainer:"", navigator:"", sq:SQUARES.map(()=>({done:false, got:"", stop:false})), more:[]}; }
+function load(){
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.sq) && s.sq.length === 9) return s; } catch(e){}
+  return blank();
+}
+let state = load();
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const label = s => s.stop ? "Spun the PokéStop" : s.got;
+
+function winLines(){ return LINES.filter(l => l.every(i => state.sq[i].done)); }
+
+function render(){
+  const lines = winLines(), inLine = new Set(lines.flat());
+  $("grid").innerHTML = SQUARES.map((q,i) => {
+    const s = state.sq[i], txt = label(s);
+    return `<button type="button" class="sq${q.free?" free":""}${s.done?" done":""}${inLine.has(i)?" line":""}" style="--bg:${q.bg}" data-i="${i}"
+      aria-label="${esc(q.name)}${s.done?", checked":""}">
+      ${q.free?"":`<span class="n">${q.n}</span>`}<span class="ball${s.done?"":" off"}"></span>
+      <span class="nm">${esc(q.name)}</span>
+      <span class="got${txt?"":" empty"}">${txt?esc(txt):"TAP TO CHECK"}</span></button>`;
+  }).join("");
+
+  const count = state.sq.filter(s => s.done).length, st = $("status");
+  st.className = "status";
+  if (count === 9){ st.classList.add("blackout"); st.innerHTML = `<span class="big fun">Blackout!</span>All 9 boxes. Amazing.`; }
+  else if (lines.length){ st.classList.add("bingo"); st.innerHTML = `<span class="big fun">Bingo!</span>${count} of 9 checked. Keep going for Blackout?`; }
+  else st.innerHTML = `<span class="big fun">${count} of 9</span>${count ? "Nice! 3 in a row is Bingo." : "Pick a stop. Catch. Repeat."}`;
+
+  $("more").innerHTML = state.more.map((m,i) => `<li><span class="ball" style="--s:20px"></span><span class="t">${esc(m)}</span><button type="button" data-del="${i}" aria-label="Remove ${esc(m)}">Remove</button></li>`).join("");
+  $("moreEmpty").style.display = state.more.length ? "none" : "";
+}
+
+["team","trainer","navigator"].forEach(k => {
+  $(k).value = state[k] || "";
+  $(k).addEventListener("input", e => { state[k] = e.target.value; save(); });
+  $(k).addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
+});
+
+// sheet
+let open = -1;
+function openSheet(i){
+  open = i; const q = SQUARES[i], s = state.sq[i];
+  $("sheetTitle").textContent = q.free ? "FREE space" : `${q.n}. ${q.name}`;
+  $("sheetWhere").textContent = q.where;
+  $("sheetInput").value = s.got; $("sheetStop").checked = !!s.stop;
+  $("sheet").classList.add("open");
+  setTimeout(() => $("sheetInput").focus(), 50);
+}
+function closeSheet(){ $("sheet").classList.remove("open"); open = -1; }
+$("grid").addEventListener("click", e => { const b = e.target.closest(".sq"); if (b) openSheet(+b.dataset.i); });
+$("sheetClose").onclick = closeSheet;
+$("sheet").addEventListener("click", e => { if (e.target === $("sheet")) closeSheet(); });
+$("sheetForm").addEventListener("submit", e => {
+  e.preventDefault();
+  state.sq[open] = {done:true, got:$("sheetInput").value.trim(), stop:$("sheetStop").checked};
+  save(); closeSheet(); render();
+});
+$("sheetClear").onclick = () => { state.sq[open] = {done:false, got:"", stop:false}; save(); closeSheet(); render(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && open >= 0) closeSheet(); });
+
+// more catches
+$("addForm").addEventListener("submit", e => {
+  e.preventDefault(); const v = $("addInput").value.trim(); if (!v) return;
+  state.more.push(v); $("addInput").value = ""; save(); render();
+});
+$("more").addEventListener("click", e => { const b = e.target.closest("[data-del]"); if (b){ state.more.splice(+b.dataset.del,1); save(); render(); } });
+
+// reset: two taps instead of a popup
+let armed = null;
+$("reset").onclick = () => {
+  const b = $("reset");
+  if (!armed){ b.textContent = "Tap again to erase this card"; b.classList.replace("plain","red"); armed = setTimeout(() => { armed = null; b.textContent = "Start a new card"; b.classList.replace("red","plain"); }, 4000); return; }
+  clearTimeout(armed); armed = null; state = blank(); save();
+  ["team","trainer","navigator"].forEach(k => $(k).value = "");
+  b.textContent = "Start a new card"; b.classList.replace("red","plain"); render(); window.scrollTo(0,0);
+};
+
+/* ---------- drawing the card for saving ---------- */
+function wrap(ctx, text, maxW){
+  const words = String(text).split(/\s+/), out = []; let line = "";
+  for (const w of words){ const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line){ out.push(line); line = w; } else line = t; }
+  if (line) out.push(line); return out;
+}
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,y,w,h,r) : ctx.rect(x,y,w,h); }
+function drawBall(ctx,cx,cy,r,on){
+  const ink = on ? "#14213d" : "#9ca3af";
+  ctx.lineWidth = r*.16; ctx.strokeStyle = ink;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,0); ctx.closePath(); ctx.fillStyle = on ? "#ee3b2e" : "#e5e7eb"; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r*.34,0,Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.stroke();
+}
+async function drawCard(){
+  try { await document.fonts.ready; } catch(e){}
+  const W = 1200, pad = 50, FUN = '"Luckiest Guy","Arial Black",sans-serif', BODY = '"Nunito","Helvetica Neue",Arial,sans-serif';
+  const cell = (W - pad*2 - 2*20) / 3, cellH = 330, moreRows = state.more.length;
+  const H = 230 + 120 + 3*cellH + 2*20 + 90 + (moreRows ? 80 + Math.ceil(moreRows/2)*48 : 0) + 90;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fffaf0"; ctx.fillRect(0,0,W,H);
+  // header
+  const g = ctx.createLinearGradient(0,0,W,230); g.addColorStop(0,"#ee3b2e"); g.addColorStop(1,"#ff8a1f");
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,230); ctx.fillStyle = "#14213d"; ctx.fillRect(0,226,W,8);
+  ctx.font = `96px ${FUN}`; ctx.lineJoin = "round"; ctx.lineWidth = 16; ctx.strokeStyle = "#1d3f7a";
+  ctx.strokeText("Balboa Bingo", pad, 130); ctx.fillStyle = "#ffcb05"; ctx.fillText("Balboa Bingo", pad, 130);
+  ctx.fillStyle = "#fff"; ctx.font = `900 34px ${BODY}`;
+  ctx.fillText("TRACE Catch-a-thon  ·  " + new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}), pad, 190);
+  drawBall(ctx, W-pad-70, 115, 70, true);
+  // names
+  let y = 270; const fw = (W - pad*2 - 2*16)/3;
+  [["TEAM","team","#8a4fd8"],["TRAINER","trainer","#ee3b2e"],["NAVIGATOR","navigator","#2a75bb"]].forEach(([k,f,col],i) => {
+    const x = pad + i*(fw+16);
+    rr(ctx,x,y,fw,96,14); ctx.fillStyle = "#fff"; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = "#14213d"; ctx.stroke();
+    ctx.fillStyle = col; ctx.font = `900 22px ${BODY}`; ctx.fillText(k, x+16, y+32);
+    ctx.fillStyle = "#14213d"; ctx.font = `800 32px ${BODY}`;
+    let v = state[f] || ""; while (v && ctx.measureText(v).width > fw-32) v = v.slice(0,-1);
+    ctx.fillText(v, x+16, y+76);
+  });
+  // grid
+  y += 120; const inLine = new Set(winLines().flat());
+  SQUARES.forEach((q,i) => {
+    const s = state.sq[i], x = pad + (i%3)*(cell+20), yy = y + Math.floor(i/3)*(cellH+20);
+    if (inLine.has(i)){ rr(ctx,x-8,yy-8,cell+16,cellH+16,24); ctx.fillStyle = "#ffcb05"; ctx.fill(); }
+    rr(ctx,x,yy+6,cell,cellH,18); ctx.fillStyle = "#14213d"; ctx.fill();
+    rr(ctx,x,yy,cell,cellH,18); ctx.fillStyle = q.bg; ctx.fill(); ctx.lineWidth = 5; ctx.strokeStyle = s.done ? "#3fb950" : "#14213d"; ctx.stroke();
+    const white = !!q.free;
+    if (!q.free){ ctx.beginPath(); ctx.arc(x+30,yy+30,19,0,Math.PI*2); ctx.fillStyle = "#14213d"; ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = `900 24px ${BODY}`; ctx.textAlign = "center"; ctx.fillText(q.n, x+30, yy+39); }
+    drawBall(ctx, x+cell-32, yy+32, 20, s.done);
+    ctx.textAlign = "center"; ctx.fillStyle = white ? "#fff" : "#14213d";
+    let ty = yy + 100;
+    if (q.free){ ctx.font = `56px ${FUN}`; ctx.fillText("FREE", x+cell/2, ty+10); ty += 50; }
+    else { ctx.font = `900 30px ${BODY}`; wrap(ctx,q.name,cell-30).forEach(l => { ctx.fillText(l, x+cell/2, ty); ty += 34; }); }
+    const txt = label(s);
+    ctx.font = `900 18px ${BODY}`; ctx.fillStyle = white ? "#ffe1dc" : "#4b5563";
+    ctx.fillText(s.done ? "WE CAUGHT" : "", x+cell/2, yy+cellH-100);
+    ctx.fillStyle = white ? "#fff" : "#14213d"; ctx.font = `800 28px ${BODY}`;
+    wrap(ctx, s.done ? (txt || "✓") : "", cell-30).slice(0,2).forEach((l,k) => ctx.fillText(l, x+cell/2, yy+cellH-62+k*32));
+    ctx.textAlign = "left";
+  });
+  y += 3*cellH + 2*20 + 80;
+  // result line
+  const count = state.sq.filter(s => s.done).length, lines = winLines().length;
+  ctx.fillStyle = "#14213d"; ctx.font = `44px ${FUN}`;
+  ctx.fillText(count === 9 ? "BLACKOUT!  All 9 boxes" : lines ? `BINGO!  ${count} of 9 boxes` : `${count} of 9 boxes`, pad, y);
+  // more catches
+  if (moreRows){
+    y += 70; ctx.font = `36px ${FUN}`; ctx.fillStyle = "#ee3b2e"; ctx.fillText("More catches", pad, y); y += 20;
+    ctx.font = `800 28px ${BODY}`; ctx.fillStyle = "#14213d";
+    const colW = (W - pad*2)/2;
+    state.more.forEach((m,i) => {
+      const x = pad + (i%2)*colW, yy = y + Math.floor(i/2)*48 + 36;
+      drawBall(ctx, x+14, yy-10, 13, true);
+      let v = m; while (ctx.measureText(v).width > colW-60) v = v.slice(0,-1);
+      ctx.fillStyle = "#14213d"; ctx.fillText(v, x+40, yy);
+    });
+  }
+  return c;
+}
+
+/* ---------- a tiny one-page PDF around a JPEG (no library) ---------- */
+function jpegPdf(jpegBytes, imgW, imgH){
+  const PW = 612, PH = 792, m = 36, s = Math.min((PW-2*m)/imgW, (PH-2*m)/imgH);
+  const dw = (imgW*s).toFixed(2), dh = (imgH*s).toFixed(2), dx = ((PW-imgW*s)/2).toFixed(2), dy = (PH-m-imgH*s).toFixed(2);
+  const content = `q ${dw} 0 0 ${dh} ${dx} ${dy} cm /Im0 Do Q`;
+  const enc = new TextEncoder(), parts = [], offsets = []; let len = 0;
+  const push = p => { const b = typeof p === "string" ? enc.encode(p) : p; parts.push(b); len += b.length; };
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  const obj = (n, body) => { offsets[n] = len; push(`${n} 0 obj\n`); body.forEach(push); push("\nendobj\n"); };
+  obj(1, ["<< /Type /Catalog /Pages 2 0 R >>"]);
+  obj(2, ["<< /Type /Pages /Kids [3 0 R] /Count 1 >>"]);
+  obj(3, [`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`]);
+  obj(4, [`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`, jpegBytes, "\nendstream"]);
+  obj(5, [`<< /Length ${content.length} >>\nstream\n${content}\nendstream`]);
+  const xref = len;
+  push(`xref\n0 6\n0000000000 65535 f \n` + [1,2,3,4,5].map(n => String(offsets[n]).padStart(10,"0") + " 00000 n \n").join(""));
+  push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, {type:"application/pdf"});
+}
+
+function fileName(ext){
+  const t = (state.team || "card").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase() || "card";
+  return `balboa-bingo-${t}.${ext}`;
+}
+async function deliver(blob, name){
+  const file = new File([blob], name, {type:blob.type});
+  if (navigator.canShare && navigator.canShare({files:[file]})){
+    try { await navigator.share({files:[file], title:"Balboa Bingo"}); return "Saved."; }
+    catch(e){ if (e.name === "AbortError") return ""; }
+  }
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return "Downloaded " + name;
+}
+const toast = t => { $("toast").textContent = t; };
+$("savePic").onclick = async () => {
+  toast("Making your picture...");
+  const c = await drawCard(), blob = await new Promise(r => c.toBlob(r, "image/png"));
+  toast(await deliver(blob, fileName("png")));
+};
+$("savePdf").onclick = async () => {
+  toast("Making your PDF...");
+  const c = await drawCard(), jpg = await new Promise(r => c.toBlob(r, "image/jpeg", 0.92));
+  const bytes = new Uint8Array(await jpg.arrayBuffer());
+  toast(await deliver(jpegPdf(bytes, c.width, c.height), fileName("pdf")));
+};
+
+render();
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
