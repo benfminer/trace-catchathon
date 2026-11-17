@@ -1,9 +1,10 @@
 // Keeps the card working if the phone loses signal in the park.
 // Page: network first, fall back to cache. Fonts: cache first.
-const CACHE = "catchathon-v1";
+const CACHE = "catchathon-v2";
+const PICS = ["bulbasaur","snorlax","gengar","butterfree","pikachu","jigglypuff","meowth","squirtle","charmander"].map(n => `./img/${n}.png`);
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./index.html"])));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./index.html", ...PICS])));
   self.skipWaiting();
 });
 

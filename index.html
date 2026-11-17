@@ -25,7 +25,7 @@
   header h1{margin:0; font-size:40px; line-height:.95; color:var(--yellow);
             -webkit-text-stroke:.09em var(--navy); paint-order:stroke fill; text-shadow:0 .06em 0 var(--navy)}
   header p{margin:6px 0 0; font-weight:900; font-size:14px; letter-spacing:.03em}
-  header .ball{--s:64px; margin-left:auto}
+  header .hero{width:92px; height:92px; margin:-8px -6px -14px auto; flex:none; filter:drop-shadow(0 4px 0 rgba(0,0,0,.2))}
 
   /* poke ball mark */
   .ball{width:var(--s); height:var(--s); border-radius:50%; border:calc(var(--s)*.08) solid var(--ink);
@@ -56,6 +56,7 @@
   .sq .n{position:absolute; left:6px; top:6px; background:var(--ink); color:#fff; width:22px; height:22px; border-radius:50%;
          font-size:13px; font-weight:900; display:grid; place-items:center}
   .sq .ball{--s:24px; position:absolute; right:6px; top:5px}
+  .sq .pk{width:64px; height:64px; object-fit:contain; margin:-6px 0 4px; filter:drop-shadow(0 2px 0 rgba(0,0,0,.15))}
   .sq .nm{font-weight:900; font-size:14px; line-height:1.08}
   .sq .got{margin-top:auto; padding-top:6px; width:100%; font-size:13px; line-height:1.1; word-break:break-word}
   .sq .got.empty{color:#6b7280; font-weight:800; font-size:11px; letter-spacing:.06em}
@@ -120,7 +121,7 @@
       <h1 class="fun">Balboa Bingo</h1>
       <p>TRACE Catch-a-thon. Any order. Tap a box when you catch one.</p>
     </div>
-    <div class="ball" aria-hidden="true"></div>
+    <img class="hero" src="img/meowth.png" alt="">
   </div>
 </header>
 
@@ -180,16 +181,17 @@
 
 <script>
 const SQUARES = [
-  {n:2, name:"Botanical Building + Lily Pond", where:"The big wooden greenhouse and the long pond", bg:"#d4f5d0"},
-  {n:7, name:"Spreckels Organ Pavilion", where:"The giant outdoor stage", bg:"#ffcb05"},
-  {n:4, name:"Museum of Us tower", where:"The tall tower with the blue-tiled dome", bg:"#e5d6ff"},
-  {n:8, name:"Zoro Garden", where:"The sunken stone garden next to the Fleet Science Center", bg:"#e6f7d6"},
-  {free:true, name:"FREE", where:"Catch any Pokémon together with your buddy", bg:"#ee3b2e"},
-  {n:5, name:"Alcazar Garden", where:"The garden with tiled fountains", bg:"#ffd6e8"},
-  {n:3, name:"Plaza de Panama", where:"The big plaza with the round fountain", bg:"#ffe9a8"},
-  {n:1, name:"Bea Evenson Fountain", where:"The fountain in front of the Fleet Science Center", bg:"#cfe8ff"},
-  {n:6, name:"El Cid statue", where:"The knight on a horse", bg:"#ffe1c2"},
+  {n:2, name:"Botanical Building + Lily Pond", where:"The big wooden greenhouse and the long pond", bg:"#d4f5d0", img:"bulbasaur"},
+  {n:7, name:"Spreckels Organ Pavilion", where:"The giant outdoor stage", bg:"#ffcb05", img:"snorlax"},
+  {n:4, name:"Museum of Us tower", where:"The tall tower with the blue-tiled dome", bg:"#e5d6ff", img:"gengar"},
+  {n:8, name:"Zoro Garden", where:"The sunken stone garden next to the Fleet Science Center", bg:"#e6f7d6", img:"butterfree"},
+  {free:true, name:"FREE", where:"Catch any Pokémon together with your buddy", bg:"#ee3b2e", img:"pikachu"},
+  {n:5, name:"Alcazar Garden", where:"The garden with tiled fountains", bg:"#ffd6e8", img:"jigglypuff"},
+  {n:3, name:"Plaza de Panama", where:"The big plaza with the round fountain", bg:"#ffe9a8", img:"meowth"},
+  {n:1, name:"Bea Evenson Fountain", where:"The fountain in front of the Fleet Science Center", bg:"#cfe8ff", img:"squirtle"},
+  {n:6, name:"El Cid statue", where:"The knight on a horse", bg:"#ffe1c2", img:"charmander"},
 ];
+const imgSrc = name => `img/${name}.png`;
 const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const KEY = "trace-catchathon-2026";
 
@@ -214,6 +216,7 @@ function render(){
     return `<button type="button" class="sq${q.free?" free":""}${s.done?" done":""}${inLine.has(i)?" line":""}" style="--bg:${q.bg}" data-i="${i}"
       aria-label="${esc(q.name)}${s.done?", checked":""}">
       ${q.free?"":`<span class="n">${q.n}</span>`}<span class="ball${s.done?"":" off"}"></span>
+      <img class="pk" src="${imgSrc(q.img)}" alt="">
       <span class="nm">${esc(q.name)}</span>
       <span class="got${txt?"":" empty"}">${txt?esc(txt):"TAP TO CHECK"}</span></button>`;
   }).join("");
@@ -289,8 +292,13 @@ function drawBall(ctx,cx,cy,r,on){
   ctx.beginPath(); ctx.moveTo(cx-r,cy); ctx.lineTo(cx+r,cy); ctx.stroke();
   ctx.beginPath(); ctx.arc(cx,cy,r*.34,0,Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.stroke();
 }
+const imgCache = {};
+function loadImg(name){
+  return imgCache[name] ||= new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = imgSrc(name); });
+}
 async function drawCard(){
   try { await document.fonts.ready; } catch(e){}
+  const pics = {}; for (const n of [...SQUARES.map(q => q.img), "meowth"]) pics[n] = await loadImg(n);
   const W = 1200, pad = 50, FUN = '"Luckiest Guy","Arial Black",sans-serif', BODY = '"Nunito","Helvetica Neue",Arial,sans-serif';
   const cell = (W - pad*2 - 2*20) / 3, cellH = 330, moreRows = state.more.length;
   const H = 230 + 120 + 3*cellH + 2*20 + 90 + (moreRows ? 80 + Math.ceil(moreRows/2)*48 : 0) + 90;
@@ -304,7 +312,7 @@ async function drawCard(){
   ctx.strokeText("Balboa Bingo", pad, 130); ctx.fillStyle = "#ffcb05"; ctx.fillText("Balboa Bingo", pad, 130);
   ctx.fillStyle = "#fff"; ctx.font = `900 34px ${BODY}`;
   ctx.fillText("TRACE Catch-a-thon  ·  " + new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}), pad, 190);
-  drawBall(ctx, W-pad-70, 115, 70, true);
+  if (pics.meowth) ctx.drawImage(pics.meowth, W-pad-190, 25, 200, 200); else drawBall(ctx, W-pad-70, 115, 70, true);
   // names
   let y = 270; const fw = (W - pad*2 - 2*16)/3;
   [["TEAM","team","#8a4fd8"],["TRAINER","trainer","#ee3b2e"],["NAVIGATOR","navigator","#2a75bb"]].forEach(([k,f,col],i) => {
@@ -327,8 +335,9 @@ async function drawCard(){
       ctx.fillStyle = "#fff"; ctx.font = `900 24px ${BODY}`; ctx.textAlign = "center"; ctx.fillText(q.n, x+30, yy+39); }
     drawBall(ctx, x+cell-32, yy+32, 20, s.done);
     ctx.textAlign = "center"; ctx.fillStyle = white ? "#fff" : "#14213d";
-    let ty = yy + 100;
-    if (q.free){ ctx.font = `56px ${FUN}`; ctx.fillText("FREE", x+cell/2, ty+10); ty += 50; }
+    if (pics[q.img]) ctx.drawImage(pics[q.img], x+cell/2-60, yy+14, 120, 120);
+    let ty = yy + 162;
+    if (q.free){ ctx.font = `56px ${FUN}`; ctx.fillText("FREE", x+cell/2, ty+16); ty += 50; }
     else { ctx.font = `900 30px ${BODY}`; wrap(ctx,q.name,cell-30).forEach(l => { ctx.fillText(l, x+cell/2, ty); ty += 34; }); }
     const txt = label(s);
     ctx.font = `900 18px ${BODY}`; ctx.fillStyle = white ? "#ffe1dc" : "#4b5563";
